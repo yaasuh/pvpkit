@@ -1,5 +1,5 @@
 local player = game:GetService("Players").LocalPlayer
-local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
 
 -- ========== COLOR PALETTE ==========
 local COLORS = {
@@ -14,7 +14,6 @@ local COLORS = {
 -- ========== CREATE MAIN FRAME ==========
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "PremiumMenu"
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
@@ -23,47 +22,12 @@ mainFrame.Position = UDim2.new(0.72, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = COLORS.Background
 mainFrame.Parent = screenGui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
-corner.Parent = mainFrame
-
--- ========== TITLE BAR ==========
-local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0.12, 0)
-titleBar.BackgroundColor3 = COLORS.Secondary
-titleBar.Parent = mainFrame
-
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 1, 0)
-titleLabel.Text = "PREMIUM HACK v2.1"
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextColor3 = COLORS.Text
-titleLabel.TextSize = 18
-titleLabel.BackgroundTransparency = 1
-titleLabel.Parent = titleBar
-
--- ========== CONTENT FRAME ==========
-local contentFrame = Instance.new("Frame")
-contentFrame.Size = UDim2.new(1, 0, 0.88, 0)
-contentFrame.Position = UDim2.new(0, 0, 0.12, 0)
-contentFrame.BackgroundTransparency = 1
-contentFrame.Parent = mainFrame
-
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 8)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.Parent = contentFrame
-
--- ========== TOGGLE BUTTON TEMPLATE ==========
-local function CreateToggle(name)
+-- ========== TOGGLE BUTTON FUNCTION ==========
+local function CreateToggle(name, callback)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Size = UDim2.new(0.9, 0, 0.12, 0)
     toggleFrame.BackgroundColor3 = COLORS.Secondary
-    toggleFrame.Parent = contentFrame
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = toggleFrame
+    toggleFrame.Parent = mainFrame
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0.7, 0, 1, 0)
@@ -81,30 +45,25 @@ local function CreateToggle(name)
     toggleButton.BackgroundColor3 = COLORS.ToggleOff
     toggleButton.Parent = toggleFrame
 
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(1, 0)
-    toggleCorner.Parent = toggleButton
+    local toggled = false
 
-    return toggleButton
+    toggleButton.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        toggleButton.BackgroundColor3 = toggled and COLORS.ToggleOn or COLORS.ToggleOff
+        callback(toggled)
+    end)
 end
-
--- ========== CREATE TOGGLES ==========
-local aimbotToggle = CreateToggle("AIMBOT")
-local espToggle = CreateToggle("ESP")
-local hitboxToggle = CreateToggle("HITBOX EXPANDER")
 
 -- ========== SLIDER COMPONENT ==========
 local sliderContainer = Instance.new("Frame")
 sliderContainer.Size = UDim2.new(0.9, 0, 0.15, 0)
-sliderContainer.BackgroundTransparency = 1
-sliderContainer.Parent = contentFrame
+sliderContainer.Parent = mainFrame
 
 local sliderLabel = Instance.new("TextLabel")
-sliderLabel.Text = "HITBOX SIZE: 1"
+sliderLabel.Text = "HITBOX SIZE: 10"
 sliderLabel.Font = Enum.Font.Gotham
 sliderLabel.TextColor3 = COLORS.Text
 sliderLabel.TextSize = 14
-sliderLabel.BackgroundTransparency = 1
 sliderLabel.Size = UDim2.new(1, 0, 0.4, 0)
 sliderLabel.Parent = sliderContainer
 
@@ -119,14 +78,19 @@ sliderFill.Size = UDim2.new(0, 0, 1, 0)
 sliderFill.BackgroundColor3 = COLORS.Slider
 sliderFill.Parent = sliderTrack
 
-local UIS = game:GetService("UserInputService")
 local dragging = false
+local hitboxSize = 10
 
 local function updateSlider(input)
     local relativePosition = input.Position.X - sliderTrack.AbsolutePosition.X
     local percentage = math.clamp(relativePosition / sliderTrack.AbsoluteSize.X, 0, 1)
     sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
-    sliderLabel.Text = "HITBOX SIZE: " .. math.floor(percentage * 10)
+
+    hitboxSize = math.floor(10 + (percentage * 40)) -- 10 = 50 scaling
+    sliderLabel.Text = "HITBOX SIZE: " .. hitboxSize
+
+    -- Update hitbox size in real-time
+    getgenv().UpdateHitboxSize(hitboxSize)
 end
 
 sliderTrack.InputBegan:Connect(function(input)
@@ -147,3 +111,40 @@ UIS.InputEnded:Connect(function(input)
         dragging = false
     end
 end)
+
+-- ========== HITBOX EXPANDER ==========
+getgenv().HitboxEnabled = false
+getgenv().HitboxSize = 10
+
+local function updateHitbox()
+    for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            if getgenv().HitboxEnabled then
+                v.Character.HumanoidRootPart.Size = Vector3.new(getgenv().HitboxSize, getgenv().HitboxSize, getgenv().HitboxSize)
+                v.Character.HumanoidRootPart.Transparency = 0.5
+                v.Character.HumanoidRootPart.CanCollide = false
+            else
+                v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                v.Character.HumanoidRootPart.Transparency = 0
+                v.Character.HumanoidRootPart.CanCollide = true
+            end
+        end
+    end
+end
+
+getgenv().UpdateHitboxSize = function(size)
+    getgenv().HitboxSize = size
+    updateHitbox()
+end
+
+getgenv().ToggleHitbox = function()
+    updateHitbox()
+end
+
+-- ========== CREATE TOGGLES ==========
+CreateToggle("HITBOX EXPANDER", function(enabled)
+    getgenv().HitboxEnabled = enabled
+    getgenv().ToggleHitbox()
+end)
+
+print("Loader GUI with Hitbox Expander Loaded!")

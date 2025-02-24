@@ -1,3 +1,4 @@
+-- BANKAI PVP KIT GUI
 local player = game:GetService("Players").LocalPlayer
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
@@ -110,25 +111,35 @@ sliderButton.Parent = slider
 
 local hitboxSize = 10
 sliderButton.MouseButton1Down:Connect(function()
-    local dragging = true
-    local function updateSlider(input)
-        if dragging then
-            local relativePosition = input.Position.X - slider.AbsolutePosition.X
-            local newSize = math.clamp(relativePosition / slider.AbsoluteSize.X, 0, 1)
-            sliderButton.Position = UDim2.new(newSize, 0, 0, 0)
-            hitboxSize = math.floor(newSize * 100) -- Assuming max size is 100
-        end
-    end
-
-    UIS.InputChanged:Connect(function(input)
+    local connection
+    connection = UIS.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateSlider(input)
+            local pos = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            sliderButton.Position = UDim2.new(pos, 0, 0, 0)
+            hitboxSize = math.floor(pos * 50)
         end
     end)
-
     UIS.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
+            connection:Disconnect()
         end
     end)
+end)
+
+-- Update Hitbox Size every 100ms
+task.spawn(function()
+    while true do
+        if hitboxEnabled then
+            for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
+                if enemy ~= player and enemy.Character then
+                    for _, part in pairs(enemy.Character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(0.1)
+    end
 end)

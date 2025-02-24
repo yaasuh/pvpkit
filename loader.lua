@@ -1,145 +1,85 @@
--- BANKAI PVP KIT GUI
-local player = game:GetService("Players").LocalPlayer
-local TweenService = game:GetService("TweenService")
-local UIS = game:GetService("UserInputService")
+-- Advanced ESP for Roblox
+-- Works with Synapse X, Script-Ware, etc.
 
--- Color Palette
-local COLORS = {
-    Background = Color3.fromRGB(15, 15, 25),
-    Secondary = Color3.fromRGB(35, 35, 45),
-    Text = Color3.fromRGB(255, 255, 255),
-    ToggleOn = Color3.fromRGB(0, 200, 100),
-    ToggleOff = Color3.fromRGB(80, 80, 80),
-    Slider = Color3.fromRGB(0, 122, 255),
-    Minimize = Color3.fromRGB(200, 50, 50)
+local ESP = {
+    Enabled = true,
+    Tracers = true,
+    Boxes = true,
+    Names = true,
+    HealthBars = true,
+    FOVCircle = true,
+    Chams = true,
+    Color = Color3.fromRGB(255, 0, 0), -- Default color: Red
+    FOVRadius = 100
 }
 
--- Create GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "BankaiPvpKit"
-screenGui.Parent = player:WaitForChild("PlayerGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = game:GetService("Workspace").CurrentCamera
+local LocalPlayer = Players.LocalPlayer
 
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0.3, 0, 0.4, 0)
-mainFrame.Position = UDim2.new(0.35, 0, 0.3, 0)
-mainFrame.BackgroundColor3 = COLORS.Background
-mainFrame.BorderSizePixel = 0
-mainFrame.Parent = screenGui
+local function DrawESP(player)
+    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        local head = player.Character:FindFirstChild("Head")
+        local humanoid = player.Character:FindFirstChild("Humanoid")
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = mainFrame
-
--- Title Bar
-local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0.15, 0)
-titleBar.BackgroundColor3 = COLORS.Secondary
-titleBar.Parent = mainFrame
-titleBar.Active = true
-
-titleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        local dragStart, startPos = input.Position, mainFrame.Position
-        local function update(input)
-            local delta = input.Position - dragStart
-            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-        local inputChanged;
-        inputChanged = UIS.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement then update(input) end
-        end)
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                inputChanged:Disconnect()
-            end
-        end)
-    end
-end)
-
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 1, 0)
-titleLabel.Text = "BANKAI PVP KIT"
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextColor3 = COLORS.Text
-titleLabel.TextSize = 18
-titleLabel.BackgroundTransparency = 1
-titleLabel.Parent = titleBar
-
--- Minimize Button
-local minimizeButton = Instance.new("TextButton")
-minimizeButton.Size = UDim2.new(0.1, 0, 1, 0)
-minimizeButton.Position = UDim2.new(0.9, 0, 0, 0)
-minimizeButton.Text = "-"
-minimizeButton.TextSize = 20
-minimizeButton.BackgroundColor3 = COLORS.Minimize
-minimizeButton.Parent = titleBar
-
-local isMinimized = false
-minimizeButton.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = isMinimized and UDim2.new(0, 0, 0, 0) or UDim2.new(0.3, 0, 0.4, 0)}):Play()
-    mainFrame.Visible = not isMinimized
-end)
-
--- Hitbox Expander Toggle
-local hitboxToggle = Instance.new("TextButton")
-hitboxToggle.Size = UDim2.new(0.9, 0, 0.12, 0)
-hitboxToggle.Position = UDim2.new(0.05, 0, 0.2, 0)
-hitboxToggle.Text = "Hitbox Expander"
-hitboxToggle.Font = Enum.Font.Gotham
-hitboxToggle.TextColor3 = COLORS.Text
-hitboxToggle.BackgroundColor3 = COLORS.ToggleOff
-hitboxToggle.Parent = mainFrame
-
-local hitboxEnabled = false
-hitboxToggle.MouseButton1Click:Connect(function()
-    hitboxEnabled = not hitboxEnabled
-    hitboxToggle.BackgroundColor3 = hitboxEnabled and COLORS.ToggleOn or COLORS.ToggleOff
-end)
-
--- Hitbox Size Slider
-local slider = Instance.new("Frame")
-slider.Size = UDim2.new(0.9, 0, 0.1, 0)
-slider.Position = UDim2.new(0.05, 0, 0.35, 0)
-slider.BackgroundColor3 = COLORS.Secondary
-slider.Parent = mainFrame
-
-local sliderButton = Instance.new("TextButton")
-sliderButton.Size = UDim2.new(0.1, 0, 1, 0)
-sliderButton.BackgroundColor3 = COLORS.Slider
-sliderButton.Parent = slider
-
-local hitboxSize = 10
-sliderButton.MouseButton1Down:Connect(function()
-    local connection
-    connection = UIS.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            local pos = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
-            sliderButton.Position = UDim2.new(pos, 0, 0, 0)
-            hitboxSize = math.floor(pos * 50)
-        end
-    end)
-    UIS.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            connection:Disconnect()
-        end
-    end)
-end)
-
--- Update Hitbox Size every 100ms
-task.spawn(function()
-    while true do
-        if hitboxEnabled then
-            for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
-                if enemy ~= player and enemy.Character then
-                    for _, part in pairs(enemy.Character:GetChildren()) do
-                        if part:IsA("BasePart") then
-                            part.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                        end
-                    end
+        if rootPart and head and humanoid then
+            local rootPos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+            if onScreen then
+                -- Box ESP
+                if ESP.Boxes then
+                    local boxSize = Vector2.new(50, 100) -- Box dimensions
+                    local boxPosition = Vector2.new(rootPos.X - boxSize.X / 2, rootPos.Y - boxSize.Y / 2)
+                    local box = Drawing.new("Square")
+                    box.Size = boxSize
+                    box.Position = boxPosition
+                    box.Color = ESP.Color
+                    box.Thickness = 2
+                    box.Visible = true
+                end
+                
+                -- Tracers
+                if ESP.Tracers then
+                    local tracer = Drawing.new("Line")
+                    tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                    tracer.To = Vector2.new(rootPos.X, rootPos.Y)
+                    tracer.Color = ESP.Color
+                    tracer.Thickness = 1
+                    tracer.Visible = true
+                end
+                
+                -- Name ESP
+                if ESP.Names then
+                    local nameTag = Drawing.new("Text")
+                    nameTag.Text = player.Name
+                    nameTag.Position = Vector2.new(rootPos.X, rootPos.Y - 50)
+                    nameTag.Size = 16
+                    nameTag.Color = ESP.Color
+                    nameTag.Visible = true
+                end
+                
+                -- Health Bar
+                if ESP.HealthBars then
+                    local healthBar = Drawing.new("Line")
+                    healthBar.From = Vector2.new(rootPos.X - 30, rootPos.Y - 50)
+                    healthBar.To = Vector2.new(rootPos.X - 30, rootPos.Y - 50 + (100 - humanoid.Health / humanoid.MaxHealth * 100))
+                    healthBar.Color = Color3.fromRGB(0, 255, 0) -- Green
+                    healthBar.Thickness = 2
+                    healthBar.Visible = true
                 end
             end
         end
-        task.wait(0.1)
+    end
+end
+
+-- Update ESP Every Frame
+RunService.RenderStepped:Connect(function()
+    if ESP.Enabled then
+        for _, player in pairs(Players:GetPlayers()) do
+            DrawESP(player)
+        end
     end
 end)
+
+print("Advanced ESP Loaded!")

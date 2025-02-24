@@ -25,10 +25,24 @@ mainFrame.Position = UDim2.new(0.72, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = COLORS.Background
 mainFrame.Parent = screenGui
 
+-- ========== HITBOX TOGGLE BUTTON ==========
+local hitboxToggle = Instance.new("TextButton")
+hitboxToggle.Size = UDim2.new(0.9, 0, 0.12, 0)
+hitboxToggle.Position = UDim2.new(0.05, 0, 0.1, 0)
+hitboxToggle.BackgroundColor3 = COLORS.ToggleOff
+hitboxToggle.Text = "Hitbox: OFF"
+hitboxToggle.TextColor3 = COLORS.Text
+hitboxToggle.TextSize = 14
+hitboxToggle.Parent = mainFrame
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 6)
+UICorner.Parent = hitboxToggle
+
 -- ========== SLIDER COMPONENT ==========
 local sliderContainer = Instance.new("Frame")
 sliderContainer.Size = UDim2.new(0.9, 0, 0.15, 0)
-sliderContainer.Position = UDim2.new(0.05, 0, 0.6, 0)
+sliderContainer.Position = UDim2.new(0.05, 0, 0.3, 0)
 sliderContainer.Parent = mainFrame
 
 local sliderLabel = Instance.new("TextLabel")
@@ -57,22 +71,20 @@ sliderKnob.Position = UDim2.new(0, -6, -0.25, 0)
 sliderKnob.BackgroundColor3 = COLORS.SliderKnob
 sliderKnob.Parent = sliderFill
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(1, 0)
-UICorner.Parent = sliderKnob
+local UICornerKnob = Instance.new("UICorner")
+UICornerKnob.CornerRadius = UDim.new(1, 0)
+UICornerKnob.Parent = sliderKnob
 
 local dragging = false
 local hitboxSize = 10
+local hitboxEnabled = false
 
 -- ========== HITBOX EXPANDER FUNCTION ==========
-getgenv().HitboxEnabled = false
-getgenv().HitboxSize = 10
-
 local function updateHitbox()
     for _, v in pairs(game:GetService("Players"):GetPlayers()) do
         if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-            if getgenv().HitboxEnabled then
-                v.Character.HumanoidRootPart.Size = Vector3.new(getgenv().HitboxSize, getgenv().HitboxSize, getgenv().HitboxSize)
+            if hitboxEnabled then
+                v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                 v.Character.HumanoidRootPart.Transparency = 0.5
                 v.Character.HumanoidRootPart.CanCollide = false
             else
@@ -84,15 +96,25 @@ local function updateHitbox()
     end
 end
 
-getgenv().UpdateHitboxSize = function(size)
-    getgenv().HitboxSize = size
-end
-
 -- Auto-Update Every 100ms (0.1s)
 task.spawn(function()
     while true do
-        updateHitbox()
+        if hitboxEnabled then
+            updateHitbox()
+        end
         task.wait(0.1) -- 100ms update rate
+    end
+end)
+
+-- ========== TOGGLE BUTTON FUNCTIONALITY ==========
+hitboxToggle.MouseButton1Click:Connect(function()
+    hitboxEnabled = not hitboxEnabled
+    if hitboxEnabled then
+        hitboxToggle.Text = "Hitbox: ON"
+        hitboxToggle.BackgroundColor3 = COLORS.ToggleOn
+    else
+        hitboxToggle.Text = "Hitbox: OFF"
+        hitboxToggle.BackgroundColor3 = COLORS.ToggleOff
     end
 end)
 
@@ -105,7 +127,6 @@ local function updateSlider(input)
 
     hitboxSize = math.floor(10 + (percentage * 40)) -- 10 = 50 scaling
     sliderLabel.Text = "Hitbox Size: " .. hitboxSize
-    getgenv().UpdateHitboxSize(hitboxSize)
 end
 
 sliderKnob.InputBegan:Connect(function(input)
@@ -126,4 +147,4 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
-print("Updated Loader GUI with Hitbox Expander and 100ms Auto-Update Loaded!")
+print("Updated Loader GUI with Hitbox Expander, Toggle & Working Slider Loaded!")

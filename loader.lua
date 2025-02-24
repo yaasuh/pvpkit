@@ -5,12 +5,12 @@ local UIS = game:GetService("UserInputService")
 
 -- Color Palette
 local COLORS = {
-    Background = Color3.fromRGB(15, 15, 25),
-    Secondary = Color3.fromRGB(35, 35, 45),
+    Background = Color3.fromRGB(20, 20, 30),
+    Secondary = Color3.fromRGB(40, 40, 50),
     Text = Color3.fromRGB(255, 255, 255),
-    ToggleOn = Color3.fromRGB(85, 170, 127),
-    ToggleOff = Color3.fromRGB(100, 100, 100),
-    Slider = Color3.fromRGB(85, 85, 255),
+    ToggleOn = Color3.fromRGB(0, 200, 100),
+    ToggleOff = Color3.fromRGB(80, 80, 80),
+    Slider = Color3.fromRGB(0, 122, 255),
     Minimize = Color3.fromRGB(200, 50, 50)
 }
 
@@ -35,25 +35,19 @@ local titleBar = Instance.new("Frame")
 titleBar.Size = UDim2.new(1, 0, 0.15, 0)
 titleBar.BackgroundColor3 = COLORS.Secondary
 titleBar.Parent = mainFrame
-
 titleBar.Active = true
 
 titleBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        local dragInput, dragStart, startPos
-        dragStart = input.Position
-        startPos = mainFrame.Position
-
+        local dragStart, startPos = input.Position, mainFrame.Position
         local function update(input)
             local delta = input.Position - dragStart
             mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
-
         local inputChanged;
         inputChanged = UIS.InputChanged:Connect(function(input)
-            if input == dragInput then update(input) end
+            if input.UserInputType == Enum.UserInputType.MouseMovement then update(input) end
         end)
-
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 inputChanged:Disconnect()
@@ -83,7 +77,7 @@ minimizeButton.Parent = titleBar
 local isMinimized = false
 minimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
-    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = isMinimized and UDim2.new(0.3, 0, 0.1, 0) or UDim2.new(0.3, 0, 0.4, 0)}):Play()
+    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = isMinimized and UDim2.new(0.3, 0, 0.05, 0) or UDim2.new(0.3, 0, 0.4, 0)}):Play()
 end)
 
 -- Hitbox Expander Toggle

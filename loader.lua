@@ -5,8 +5,8 @@ local UIS = game:GetService("UserInputService")
 
 -- Color Palette
 local COLORS = {
-    Background = Color3.fromRGB(20, 20, 30),
-    Secondary = Color3.fromRGB(40, 40, 50),
+    Background = Color3.fromRGB(15, 15, 25),
+    Secondary = Color3.fromRGB(35, 35, 45),
     Text = Color3.fromRGB(255, 255, 255),
     ToggleOn = Color3.fromRGB(0, 200, 100),
     ToggleOff = Color3.fromRGB(80, 80, 80),
@@ -77,7 +77,8 @@ minimizeButton.Parent = titleBar
 local isMinimized = false
 minimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
-    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = isMinimized and UDim2.new(0.3, 0, 0.05, 0) or UDim2.new(0.3, 0, 0.4, 0)}):Play()
+    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = isMinimized and UDim2.new(0, 0, 0, 0) or UDim2.new(0.3, 0, 0.4, 0)}):Play()
+    mainFrame.Visible = not isMinimized
 end)
 
 -- Hitbox Expander Toggle
@@ -125,17 +126,20 @@ sliderButton.MouseButton1Down:Connect(function()
     end)
 end)
 
--- Update Hitbox Size
-game:GetService("RunService").RenderStepped:Connect(function()
-    if hitboxEnabled then
-        for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
-            if enemy ~= player and enemy.Character then
-                for _, part in pairs(enemy.Character:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+-- Update Hitbox Size every 100ms
+task.spawn(function()
+    while true do
+        if hitboxEnabled then
+            for _, enemy in pairs(game:GetService("Players"):GetPlayers()) do
+                if enemy ~= player and enemy.Character then
+                    for _, part in pairs(enemy.Character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                        end
                     end
                 end
             end
         end
+        task.wait(0.1)
     end
 end)

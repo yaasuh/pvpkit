@@ -4,10 +4,10 @@ local RunService = game:GetService("RunService")
 
 -- ========== COLOR PALETTE ==========
 local COLORS = {
-    Background = Color3.fromRGB(30, 30, 40),
-    Secondary = Color3.fromRGB(45, 45, 60),
-    Text = Color3.fromRGB(240, 240, 240),
-    SliderTrack = Color3.fromRGB(50, 50, 60),
+    Background = Color3.fromRGB(20, 20, 30),
+    Secondary = Color3.fromRGB(50, 50, 60),
+    Text = Color3.fromRGB(200, 200, 200),
+    SliderTrack = Color3.fromRGB(70, 70, 80),
     SliderFill = Color3.fromRGB(85, 170, 255),
     SliderKnob = Color3.fromRGB(230, 230, 230),
     ToggleOn = Color3.fromRGB(85, 170, 127),
@@ -20,28 +20,33 @@ screenGui.Name = "PremiumMenu"
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0.25, 0, 0.4, 0)
-mainFrame.Position = UDim2.new(0.72, 0, 0.3, 0)
+mainFrame.Size = UDim2.new(0.35, 0, 0.25, 0)
+mainFrame.Position = UDim2.new(0.65, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = COLORS.Background
 mainFrame.Parent = screenGui
 
--- ========== HITBOX TOGGLE BUTTON ==========
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = mainFrame
+
+-- ========== HITBOX TOGGLE BUTTON (VISIBLE NOW) ==========
 local hitboxToggle = Instance.new("TextButton")
-hitboxToggle.Size = UDim2.new(0.9, 0, 0.12, 0)
+hitboxToggle.Size = UDim2.new(0.9, 0, 0.15, 0)
 hitboxToggle.Position = UDim2.new(0.05, 0, 0.1, 0)
 hitboxToggle.BackgroundColor3 = COLORS.ToggleOff
 hitboxToggle.Text = "Hitbox: OFF"
+hitboxToggle.Font = Enum.Font.GothamBold
+hitboxToggle.TextSize = 16
 hitboxToggle.TextColor3 = COLORS.Text
-hitboxToggle.TextSize = 14
 hitboxToggle.Parent = mainFrame
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 6)
-UICorner.Parent = hitboxToggle
+local UICornerToggle = Instance.new("UICorner")
+UICornerToggle.CornerRadius = UDim.new(0, 6)
+UICornerToggle.Parent = hitboxToggle
 
 -- ========== SLIDER COMPONENT ==========
 local sliderContainer = Instance.new("Frame")
-sliderContainer.Size = UDim2.new(0.9, 0, 0.15, 0)
+sliderContainer.Size = UDim2.new(0.9, 0, 0.2, 0)
 sliderContainer.Position = UDim2.new(0.05, 0, 0.3, 0)
 sliderContainer.Parent = mainFrame
 
@@ -147,4 +152,4 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
-print("Updated Loader GUI with Hitbox Expander, Toggle & Working Slider Loaded!")
+print("✅ Updated Loader GUI with Hitbox Expander & Fixed Toggle Button Loaded!")
